@@ -160,4 +160,14 @@ wei = F.softmax(wei, dim=1)
 xbow3 = wei @ x
 torch.allclose(xbow, xbow3)
 
+#version 4
+torch.manual_seed(42)
+B, T, C = 4, 8, 32
+x = torch.randn(B, T, C)
+
+tril = torch.tril(torch.ones(T, T))
+wei = torch.zeros((T, T))
+wei = wei.masked_fill(tril == 0, float('-inf'))
+wei = F.softmax(wei, dim=1)
+out = wei @ x
 
