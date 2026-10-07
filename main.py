@@ -165,6 +165,12 @@ torch.manual_seed(42)
 B, T, C = 4, 8, 32
 x = torch.randn(B, T, C)
 
+head_size = 16
+key = nn.Linear(C, head_size, bias=False)
+query = nn.Linear(C, head_size, bias=False)
+k = key(x)
+1 = query(x)
+
 tril = torch.tril(torch.ones(T, T))
 wei = torch.zeros((T, T))
 wei = wei.masked_fill(tril == 0, float('-inf'))
