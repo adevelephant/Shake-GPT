@@ -40,6 +40,7 @@ for t in range(block_size):
 torch.manual_seed(1337)
 batch_size = 4 # How many independent squences will we proccess?
 block_size = 8 #What is the maximum context length for predictions?
+n_embd = 32
 
 def get_batch(split):
     #Generate a small batch data of inputs x and targets y
@@ -56,10 +57,16 @@ class BigramLanguageModel(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+        self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
+        self.postition_embedding_table = nn.Embedding(block_size, n_embd)
+        self.lm_head = nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
-        logits = self.token_embedding_table(idx)
+        B, T = idx.shape
+        tok_emb = self.token_embedding_table(idx)
+        pos_emb = self.postition_embedding_table(torch.arange(T, device=device))
+        x = tok_emb + pos_emb
+        logits = self.lm_head(x)
 
         if targets == None:
             loss = None
@@ -115,4 +122,42 @@ for epoch in range(epochs):
 #generate
 context = torch.zeros((1 ,1), dtype=torch.long, device=device)
 print(decode(model_0.generate(context, max_new_tokens=500)[0].tolist()))
+
+torch.manual_seed(1337)
+B, T, C = 4, 8, 2
+x = torch.randn(B, T, C)
+print(x.shape)
+
+xbow = torch.zeros((B, T, C))
+for b in range(B):
+    for t in range(T):
+        xprev = x[b, :t+1]
+        xbow[b, t] = torch.mean(xprev, 0) 
+
+#version 1
+# torch.manual_seed(42)
+# a = torch.tril(torch.ones(3, 3))
+# a = a / torch.sum(a, 1, keepdim=True)
+# b = torch.randint(0, 10, (3, 2)).float()
+# c = a @ b
+# print("a=")
+# print(a)
+# print("b=")
+# print(b)
+# print("c=")
+# print(c)
+
+# Version 2
+wei = torch.tril(torch.ones(T, T))
+wei = wei / wei.sum(1, keepdim=True)
+xbow2 = wei @ x
+
+#Version 3
+tril = torch.tril(torch.ones(T, T))
+wei = torch.zeros((T, T))
+wei = wei.masked_fill(tril == 0, float('-inf'))
+wei = F.softmax(wei, dim=1)
+xbow3 = wei @ x
+torch.allclose(xbow, xbow3)
+
 
