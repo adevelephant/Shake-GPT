@@ -12,6 +12,7 @@ vocab_size = len(chars)
 
 #Tokeniser
 #string to int
+device = "cpu"
 stoi = { ch:i for i,ch in enumerate(chars) }
 itos = { i:ch for i,ch in enumerate(chars) }
 encode = lambda s: [stoi[c] for c in s] #encoder,: take a string, output list of integers
@@ -46,6 +47,7 @@ def get_batch(split):
     ix = torch.randint(len(data) - block_size, (batch_size,))
     x = torch.stack([data[i:i+block_size] for i in ix])
     y = torch.stack([data[i+1:i+block_size+1] for i in ix])
+    x, y = x.to(device), y.to(device)
     return x, y
 
 xb, yb = get_batch('train')
@@ -84,6 +86,7 @@ class BigramLanguageModel(nn.Module):
         return idx
 
 model_0 = BigramLanguageModel()
+model_0.to(device)
 logits, loss = model_0(xb, yb)
 print(logits.shape)
 print(loss)
@@ -97,7 +100,7 @@ optimizer= torch.optim.Adam(params=model_0.parameters(),
                             lr=1e-3)
 
 batch_size=32
-epochs = 1000000
+epochs = 10000
 for epoch in range(epochs):
     xb, yb = get_batch('train')
 
@@ -109,5 +112,7 @@ for epoch in range(epochs):
 
     print(loss.item())
 
-print(decode(model_0.generate(idx = torch.zeros((1, 1), dtype=torch.long), max_new_tokens=100)[0].tolist()))
+#generate
+context = torch.zeros((1 ,1), dtype=torch.long, device=device)
+print(decode(model_0.generate(context, max_new_tokens=500)[0].tolist()))
 
