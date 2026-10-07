@@ -169,7 +169,8 @@ head_size = 16
 key = nn.Linear(C, head_size, bias=False)
 query = nn.Linear(C, head_size, bias=False)
 k = key(x)
-1 = query(x)
+q = query(x)
+wei = q @ k.transpose(-2, -1)
 
 tril = torch.tril(torch.ones(T, T))
 wei = torch.zeros((T, T))
