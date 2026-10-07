@@ -1,4 +1,6 @@
 import torch
+import torch.nn as nn
+from torch.nn import functional as F
 
 #Reading it
 with open('input.txt', 'r', encoding='utf-8') as f:
@@ -47,5 +49,27 @@ def get_batch(split):
     return x, y
 
 xb, yb = get_batch('train')
+
+class BigramLanguageModel(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.token_embedding_table = nn.Embedding(vocab_size, vocab_size)
+
+    def forward(self, idx, targets):
+        logits = self.token_embedding_table(idx)
+        B, T, C = logits.shape
+        logits = logits.view(B*T, C)
+        targets = targets.view(B*T)
+
+        loss = F.cross_entropy(logits, targets)
+
+        return logits, loss
+
+
+model_0 = BigramLanguageModel()
+logits, loss = model_0(xb, yb)
+print(logits.shape)
+print(loss)
 
 
