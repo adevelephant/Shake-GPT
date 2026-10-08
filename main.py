@@ -81,9 +81,10 @@ class BigramLanguageModel(nn.Module):
     def generate(self, idx, max_new_tokens):
         for _ in range(max_new_tokens):
             #Get prdictions
-            logits, loss = self(idx)
             #focus only on the last time step
-            logits = logits[:, -1, :]
+            idx_cond = idx[:, -block_size:]
+            logits, loss = self(idx_cond)
+            logits = logits[:, -1, :]  
             #Use softmax to go from raw logits to prediction prbs
             probs = F.softmax(logits, dim=1)
             #Sample from distribution
@@ -177,4 +178,5 @@ wei = torch.zeros((T, T))
 wei = wei.masked_fill(tril == 0, float('-inf'))
 wei = F.softmax(wei, dim=1)
 out = wei @ x
+print(out.shape)
 
