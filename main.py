@@ -47,10 +47,9 @@ learning_rate = 3e-4
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 print(device)
 eval_iters = 200
-n_embd = 384 
-n_head = 6
-n_head = 6
-n_layer = 6
+n_embd = 32
+n_head = 4
+n_layer = 3
 dropout = 0.2
 
 def get_batch(split):
@@ -206,7 +205,8 @@ print(loss)
 
 
 print(list(itos.items())[:5])
-print(decode(model_0.generate(idx = torch.zeros((1, 1), dtype=torch.long), max_new_tokens=100)[0].tolist()))
+context = torch.zeros((1, 1), dtype=torch.long, device=device)
+print(decode(model_0.generate(idx=context, max_new_tokens=100)[0].tolist()))
 
 #Create optimizer
 optimizer= torch.optim.Adam(params=model_0.parameters(),
