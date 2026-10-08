@@ -99,9 +99,9 @@ class FeedForward(nn.Module):
     def __init__(self, n_embd):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Linear(n_embd, n_embd),
+            nn.Linear(n_embd, 4 * n_embd),
             nn.ReLU(),
-            nn.Linear(n_embd, n_embd)
+            nn.Linear(4 * n_embd, n_embd)
         )
     def forward(self, x):
         return self.net(x)
@@ -112,10 +112,12 @@ class Block(nn.Module):
         head_size = n_embd // n_head
         self.sa = MultiHeadAttention(n_head, head_size)
         self.ffwd = FeedForward(n_embd)
+        self.ln1 = nn.LayerNorm(n_embd)
+        self.ln2 = nn.LayerNorm(n_embd)
 
     def forward(self, x):
-        x = x + self.sa(x)
-        x = x + self.ffwd(x)
+        x = x + self.sa(self.ln1(x))
+        x = x + self.ffwd(self.ln2(x))
         return x
 
 class BigramLanguageModel(nn.Module):
@@ -164,7 +166,33 @@ class BigramLanguageModel(nn.Module):
             idx_next = torch.multinomial(probs, num_samples=1)
             #Append sampled index to the running sequence
             idx = torch.cat((idx, idx_next), dim=1)
-        return idx
+        return 
+
+class BatchNorm1d:
+
+    def __init__(self, dim, eps=1e-5, momentum=0.1):
+        self.eps = eps   
+        #Parameters
+        self.gamma = torch.ones(dim)
+        self.beta = torch.zeros(dim)
+
+    def __call__(self, x):
+
+        xmean = x.mean(1, keepdim=True)
+        xvar = x.var(1, keepdim=True) 
+        xhat = (x - xmean) / torch.sqrt(xvar + self.eps)
+        self.out = self.gamma * xhat + self.beta
+       
+        return self.out
+    def parameters(self):
+        return [self.gamma, self.beta]
+torch.manual_seed(42)
+module = BatchNorm1d(100)
+x = torch.randn(32, 100)
+x = module(x)
+x.shape
+
+
 
 
 model_0 = BigramLanguageModel()
