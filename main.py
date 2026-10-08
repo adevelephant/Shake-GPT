@@ -61,6 +61,14 @@ def get_batch(split):
 
 xb, yb = get_batch('train')
 
+class MultiHeadAttention(nn.Module):
+    def __init__(self, num_heads, head_size):
+        super().__init__()
+        self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
+
+    def forward(self, x):
+        return torch.cat([h(x) for h in self.heads], dim=-1)
+
 class Head(nn.Module):
 
     def __init__(self, head_size):
@@ -70,13 +78,6 @@ class Head(nn.Module):
         self.value = nn.Linear(n_embd, head_size, bias=False)  
         self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
 
-class MultiHeadAttention(nn.Module):
-    def __init__(self, num_heads, head_size):
-        super().__init__()
-        self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
-
-    def forward(self, x):
-        return torch.cat([h(x) for h in self.heads], dim=-1)
 
     def forward(self, x):
         B,T,C = x.shape
