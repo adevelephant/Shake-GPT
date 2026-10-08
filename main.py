@@ -67,17 +67,25 @@ class Head(nn.Module):
         super().__init__()
         self.key = nn.Linear(n_embd, head_size, bias=False)
         self.query = nn.Linear(n_embd, head_size, bias=False)
-        self.value = nn.Linear(n_embd, head_size, bias=False)
+        self.value = nn.Linear(n_embd, head_size, bias=False)  
         self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, num_heads, head_size):
+        super().__init__()
+        self.heads = nn.ModuleList([Head(head_size) for _ in range(num_heads)])
+
+    def forward(self, x):
+        return torch.cat([h(x) for h in self.heads], dim=-1)
 
     def forward(self, x):
         B,T,C = x.shape
         k = self.key(x)
         q = self.query(x)
 
-        wei = q # k.transpose(-2, -1) * k.shape**-0.5
+        wei = q @ k.transpose(-2, -1) * k.shape[-1]**-0.5
         wei = wei.masked_fill(self.tril[:T, :T] == 0, float('-inf'))
-        wei = F.softmax(wei, dim=1)
+        wei = F.softmax(wei, dim=-1)
 
         v=self.value(x)
         out = wei @ v
@@ -89,6 +97,7 @@ class BigramLanguageModel(nn.Module):
 
         self.token_embedding_table = nn.Embedding(vocab_size, n_embd)
         self.postition_embedding_table = nn.Embedding(block_size, n_embd)
+        self.sa_head = Head(n_embd)
         self.lm_head = nn.Linear(n_embd, vocab_size)
 
     def forward(self, idx, targets=None):
@@ -96,6 +105,7 @@ class BigramLanguageModel(nn.Module):
         tok_emb = self.token_embedding_table(idx)
         pos_emb = self.postition_embedding_table(torch.arange(T, device=device))
         x = tok_emb + pos_emb
+        x = self.sa_head(x)
         logits = self.lm_head(x)
 
         if targets == None:
