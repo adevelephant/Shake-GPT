@@ -21,7 +21,7 @@ decode = lambda l: ''.join([itos[i]for i in l])
 #tokenise the dataset
 data = torch.tensor(encode(text), dtype=torch.long)
 
-#Train and test set
+#Train and test
 n = int(0.9*len(data))
 train_data = data[:n]
 val_data = data[n:]
@@ -44,7 +44,8 @@ block_size = 8
 max_iters = 5000
 eval_interval = 500
 learning_rate = 3e-4
-device = "cpu"
+device = "mps" if torch.backends.mps.is_available() else "cpu"
+print(device)
 eval_iters = 200
 n_embd = 384 
 n_head = 6
@@ -211,6 +212,7 @@ print(decode(model_0.generate(idx = torch.zeros((1, 1), dtype=torch.long), max_n
 optimizer= torch.optim.Adam(params=model_0.parameters(),
                             lr=1e-3)
 
+model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
 batch_size=32
 epochs = 10000
 for epoch in range(epochs):
@@ -224,8 +226,12 @@ for epoch in range(epochs):
 
     print(loss.item())
 
+torch.save(model_0.state_dict(), "shake_gpt.pt")
+
 #generate
 context = torch.zeros((1 ,1), dtype=torch.long, device=device)
+prompt = input("Prompt: ")
+context = torch.tensor([encode(prompt)], dtype=torch.long, device=device)
 print(decode(model_0.generate(context, max_new_tokens=500)[0].tolist()))
 
 torch.manual_seed(1337)
