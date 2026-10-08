@@ -41,6 +41,14 @@ torch.manual_seed(1337)
 batch_size = 4 # How many independent squences will we proccess?
 block_size = 8 #What is the maximum context length for predictions?
 n_embd = 32
+batch_size = 32
+block_size = 8
+max_iters = 5000
+eval_interval = 500
+learning_rate = 1e-3
+device = "cpu"
+eval_iters = 200
+n_embd = 32 
 
 def get_batch(split):
     #Generate a small batch data of inputs x and targets y
@@ -52,6 +60,28 @@ def get_batch(split):
     return x, y
 
 xb, yb = get_batch('train')
+
+class Head(nn.Module):
+
+    def __init__(self, head_size):
+        super().__init__()
+        self.key = nn.Linear(n_embd, head_size, bias=False)
+        self.query = nn.Linear(n_embd, head_size, bias=False)
+        self.value = nn.Linear(n_embd, head_size, bias=False)
+        self.register_buffer('tril', torch.tril(torch.ones(block_size, block_size)))
+
+    def forward(self, x):
+        B,T,C = x.shape
+        k = self.key(x)
+        q = self.query(x)
+
+        wei = q # k.transpose(-2, -1) * k.shape**-0.5
+        wei = wei.masked_fill(self.tril[:T, :T] == 0, float('-inf'))
+        wei = F.softmax(wei, dim=1)
+
+        v=self.value(x)
+        out = wei @ v
+        return out
 
 class BigramLanguageModel(nn.Module):
     def __init__(self):
@@ -77,6 +107,7 @@ class BigramLanguageModel(nn.Module):
             loss = F.cross_entropy(logits, targets)
 
         return logits, loss
+    
 
     def generate(self, idx, max_new_tokens):
         for _ in range(max_new_tokens):
@@ -92,6 +123,7 @@ class BigramLanguageModel(nn.Module):
             #Append sampled index to the running sequence
             idx = torch.cat((idx, idx_next), dim=1)
         return idx
+
 
 model_0 = BigramLanguageModel()
 model_0.to(device)
@@ -169,14 +201,21 @@ x = torch.randn(B, T, C)
 head_size = 16
 key = nn.Linear(C, head_size, bias=False)
 query = nn.Linear(C, head_size, bias=False)
+value = nn.Linear(C, head_size, bias=False)
 k = key(x)
 q = query(x)
 wei = q @ k.transpose(-2, -1)
 
 tril = torch.tril(torch.ones(T, T))
-wei = torch.zeros((T, T))
+# wei = torch.zeros((T, T))
 wei = wei.masked_fill(tril == 0, float('-inf'))
 wei = F.softmax(wei, dim=1)
-out = wei @ x
+
+v = value(x)
+out = wei @ v
+# out = wei @ x
 print(out.shape)
+
+
+
 
