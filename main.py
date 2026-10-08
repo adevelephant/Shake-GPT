@@ -38,17 +38,15 @@ for t in range(block_size):
 
 #Batches
 torch.manual_seed(1337)
-batch_size = 4 # How many independent squences will we proccess?
-block_size = 8 #What is the maximum context length for predictions?
-n_embd = 32
-batch_size = 32
+batch_size = 64 # How many independent squences will we proccess?
+block_size = 256 #What is the maximum context length for predictions?
 block_size = 8
 max_iters = 5000
 eval_interval = 500
-learning_rate = 1e-3
+learning_rate = 3e-4
 device = "cpu"
 eval_iters = 200
-n_embd = 32 
+n_embd = 384 
 n_head = 6
 n_head = 6
 n_layer = 6
