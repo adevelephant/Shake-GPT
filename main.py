@@ -197,36 +197,27 @@ x.shape
 
 
 
+TRAIN = True
+
 model_0 = BigramLanguageModel()
 model_0.to(device)
-logits, loss = model_0(xb, yb)
-print(logits.shape)
-print(loss)
-
-
-print(list(itos.items())[:5])
-context = torch.zeros((1, 1), dtype=torch.long, device=device)
-print(decode(model_0.generate(idx=context, max_new_tokens=100)[0].tolist()))
-
-#Create optimizer
-optimizer= torch.optim.Adam(params=model_0.parameters(),
-                            lr=1e-3)
-
 model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
-batch_size=32
-epochs = 10000
-for epoch in range(epochs):
-    xb, yb = get_batch('train')
 
-    #Evaluate the loss
-    logits, loss = model_0(xb, yb)
-    optimizer.zero_grad(set_to_none=True)
-    loss.backward()
-    optimizer.step()
+if TRAIN:
+    optimizer = torch.optim.Adam(params=model_0.parameters(), lr=1e-3)
+    batch_size = 32
+    epochs = 10000
+    for epoch in range(epochs):
+        xb, yb = get_batch('train')
+        logits, loss = model_0(xb, yb)
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        optimizer.step()
+        print(loss.item())
+    torch.save(model_0.state_dict(), "shake_gpt.pt")
 
-    print(loss.item())
+model_0.eval()
 
-torch.save(model_0.state_dict(), "shake_gpt.pt")
 
 #generate
 context = torch.zeros((1 ,1), dtype=torch.long, device=device)
