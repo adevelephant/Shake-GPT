@@ -17,8 +17,13 @@ This model uses a Transformer with self-attention, which is basically the same a
 
 ## Preview
 
-*Before* https://github.com/user-attachments/assets/b9efb130-e21b-455b-8c52-e0901702b76e
-**After** 
+# Before
+https://github.com/user-attachments/assets/b9efb130-e21b-455b-8c52-e0901702b76e
+
+# After
+
+https://github.com/user-attachments/assets/c92bcf22-bda8-4d60-bc23-4c996e161e4f
+
 
 
 Credits:
