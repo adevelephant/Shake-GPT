@@ -197,7 +197,7 @@ x.shape
 
 
 
-TRAIN = True
+TRAIN = False
 
 model_0 = BigramLanguageModel()
 model_0.to(device)
