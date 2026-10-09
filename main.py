@@ -12,7 +12,6 @@ vocab_size = len(chars)
 
 #Tokeniser
 #string to int
-device = "cpu"
 stoi = { ch:i for i,ch in enumerate(chars) }
 itos = { i:ch for i,ch in enumerate(chars) }
 encode = lambda s: [stoi[c] for c in s] #encoder,: take a string, output list of integers
@@ -197,25 +196,31 @@ x.shape
 
 
 
-TRAIN = False
+TRAIN = True
 
 model_0 = BigramLanguageModel()
 model_0.to(device)
 model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
 
 if TRAIN:
-    optimizer = torch.optim.Adam(params=model_0.parameters(), lr=1e-3)
+    
     batch_size = 32
-    epochs = 10000
+    epochs = 1000
+    optimizer = torch.optim.Adam(params=model_0.parameters(), lr=3e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=3e-5)
     for epoch in range(epochs):
         xb, yb = get_batch('train')
         logits, loss = model_0(xb, yb)
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
-        print(loss.item())
+        scheduler.step()
+        if epoch % 100 == 0:
+            print(epoch, loss.item())
+        print(epoch)
     torch.save(model_0.state_dict(), "shake_gpt.pt")
 
+print(loss.item())
 model_0.eval()
 
 
