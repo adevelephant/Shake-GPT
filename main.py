@@ -196,14 +196,13 @@ x.shape
 
 
 
-TRAIN = True
+TRAIN = False
 
 model_0 = BigramLanguageModel()
 model_0.to(device)
 model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
 
 if TRAIN:
-    
     batch_size = 32
     epochs = 1000
     optimizer = torch.optim.Adam(params=model_0.parameters(), lr=3e-4)
@@ -217,10 +216,9 @@ if TRAIN:
         scheduler.step()
         if epoch % 100 == 0:
             print(epoch, loss.item())
-        print(epoch)
     torch.save(model_0.state_dict(), "shake_gpt.pt")
+    print(loss.item())
 
-print(loss.item())
 model_0.eval()
 
 
