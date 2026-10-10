@@ -1,7 +1,7 @@
 # Shake-GPT
 
 ## What it is
-Shake-GPT is a small 10 million parameter, character-level GPT that generates Shakespeare-stle text.
+Shake-GPT is a small 10 million parameter, character-level GPT that generates Shakespeare-style text.
 This model uses a Transformer with self-attention, which is basically the same architecture behind the massive models like Chat and Claude, but a *bit* smaller.
 
 ## What it does
