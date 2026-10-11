@@ -40,7 +40,7 @@ torch.manual_seed(1337)
 batch_size = 64 # How many independent squences will we proccess?
 block_size = 256 #What is the maximum context length for predictions?
 block_size = 8
-max_iters = 5000
+max_iters = 5000    
 eval_interval = 500
 learning_rate = 3e-4
 device = "mps" if torch.backends.mps.is_available() else "cpu"
