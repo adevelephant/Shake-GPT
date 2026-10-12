@@ -209,6 +209,20 @@ RESUME = False   # set True only when the architecture hasn't changed
 if RESUME and os.path.exists("shake_gpt.pt"):
     model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
 
+@torch.no_grad()
+def estimate_loss():
+    model_0.eval()
+    out = {}
+    for split in ['train', 'val']:
+        losses = torch.zeros(eval_iters)
+        for k in range(eval_iters):
+            X, Y = get_batch(split)
+            _, loss = model_0(X, Y)
+            losses[k] = loss.item()
+        out[split] = losses.mean().item()
+    model_0.train()
+    return out
+
 if TRAIN:
     batch_size = 64
     epochs = 5000
