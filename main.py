@@ -203,9 +203,9 @@ model_0.to(device)
 
 
 
-TRAIN = True
+TRAIN = False
 
-RESUME = False   # set True only when the architecture hasn't changed
+RESUME = True   # set True only when the architecture hasn't changed
 if RESUME and os.path.exists("shake_gpt.pt"):
     model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
 
