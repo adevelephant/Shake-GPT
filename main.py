@@ -27,7 +27,7 @@ n = int(0.9*len(data))
 train_data = data[:n]
 val_data = data[n:]
 
-block_size = 256
+block_size = 128
 train_data[:block_size+1]
 
 x = train_data[:block_size]
@@ -40,17 +40,17 @@ for t in range(block_size):
 #Batches
 # torch.manual_seed(1337)
 batch_size = 64 # How many independent squences will we proccess?
-block_size = 256 #What is the maximum context length for predictions?
+block_size = 128 #What is the maximum context length for predictions?
 # block_size = 8
 max_iters = 5000    
 eval_interval = 500
-learning_rate = 3e-4
+learning_rate = 1e-3
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 print(device)
 eval_iters = 200
-n_embd = 32
+n_embd = 128
 n_head = 4
-n_layer = 3
+n_layer = 4
 dropout = 0.2
 
 def get_batch(split):
@@ -210,10 +210,10 @@ if RESUME and os.path.exists("shake_gpt.pt"):
     model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
 
 if TRAIN:
-    batch_size = 32
+    batch_size = 64
     epochs = 5000
     optimizer = torch.optim.Adam(params=model_0.parameters(), lr=1e-3)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=3e-7)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-3)
     for epoch in range(epochs):
         xb, yb = get_batch('train')
         logits, loss = model_0(xb, yb)
@@ -222,7 +222,8 @@ if TRAIN:
         optimizer.step()
         scheduler.step()
         if epoch % 100 == 0:
-            print(epoch, loss.item())
+            losses = estimate_loss()
+            print(f"step {epoch}: train {losses['train']:.4f}, val {losses['val']:.4f}")
     torch.save(model_0.state_dict(), "shake_gpt.pt")
     print(loss.item())
 
