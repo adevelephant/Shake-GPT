@@ -231,7 +231,6 @@ print(decode(model_0.generate(context, max_new_tokens=500)[0].tolist()))
 torch.manual_seed(1337)
 B, T, C = 4, 8, 2
 x = torch.randn(B, T, C)
-print(x.shape)
 
 xbow = torch.zeros((B, T, C))
 for b in range(B):
@@ -286,7 +285,6 @@ wei = F.softmax(wei, dim=1)
 v = value(x)
 out = wei @ v
 # out = wei @ x
-print(out.shape)
 
 
 
