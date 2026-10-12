@@ -10,6 +10,8 @@ with open('input.txt', 'r', encoding='utf-8') as f:
 chars = sorted(list(set(text)))
 vocab_size = len(chars)
 
+
+
 #Tokeniser
 #string to int
 stoi = { ch:i for i,ch in enumerate(chars) }
@@ -25,7 +27,7 @@ n = int(0.9*len(data))
 train_data = data[:n]
 val_data = data[n:]
 
-block_size = 8
+block_size = 256
 train_data[:block_size+1]
 
 x = train_data[:block_size]
@@ -36,10 +38,10 @@ for t in range(block_size):
     # print(f"When input is {context} the target is {target}")
 
 #Batches
-torch.manual_seed(1337)
+# torch.manual_seed(1337)
 batch_size = 64 # How many independent squences will we proccess?
 block_size = 256 #What is the maximum context length for predictions?
-block_size = 8
+# block_size = 8
 max_iters = 5000    
 eval_interval = 500
 learning_rate = 3e-4
@@ -187,26 +189,31 @@ class BatchNorm1d:
         return self.out
     def parameters(self):
         return [self.gamma, self.beta]
-torch.manual_seed(42)
+# torch.manual_seed(42)
 module = BatchNorm1d(100)
 x = torch.randn(32, 100)
 x = module(x)
 x.shape
 
-
-
-
-TRAIN = False
+import os
 
 model_0 = BigramLanguageModel()
 model_0.to(device)
-model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
+
+
+
+
+TRAIN = True
+
+RESUME = False   # set True only when the architecture hasn't changed
+if RESUME and os.path.exists("shake_gpt.pt"):
+    model_0.load_state_dict(torch.load("shake_gpt.pt", map_location=device))
 
 if TRAIN:
     batch_size = 32
-    epochs = 1000
-    optimizer = torch.optim.Adam(params=model_0.parameters(), lr=3e-4)
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=3e-5)
+    epochs = 5000
+    optimizer = torch.optim.Adam(params=model_0.parameters(), lr=1e-3)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=3e-7)
     for epoch in range(epochs):
         xb, yb = get_batch('train')
         logits, loss = model_0(xb, yb)
@@ -228,7 +235,7 @@ prompt = input("Prompt: ")
 context = torch.tensor([encode(prompt)], dtype=torch.long, device=device)
 print(decode(model_0.generate(context, max_new_tokens=500)[0].tolist()))
 
-torch.manual_seed(1337)
+# torch.manual_seed(1337)
 B, T, C = 4, 8, 2
 x = torch.randn(B, T, C)
 
@@ -265,7 +272,7 @@ xbow3 = wei @ x
 torch.allclose(xbow, xbow3)
 
 #version 4
-torch.manual_seed(42)
+# torch.manual_seed(42)
 B, T, C = 4, 8, 32
 x = torch.randn(B, T, C)
 
